@@ -1,0 +1,20 @@
+{
+    "letsencrypt": {
+        "base_directory": "/etc/letsencrypt",
+        "account_key": "account/account.key"
+    },
+    "requests": [
+        {
+            "domain": "example.com",
+            "cloudflare_token": "account/cloudflare.key",
+            "acme": {
+                "directory": "https://acme-v02.api.letsencrypt.org/directory",
+                "version": 2,
+                "email": "domain@example.de"
+            },
+            "hosts": [
+                "localhost"
+            ]
+        }
+    ]
+}

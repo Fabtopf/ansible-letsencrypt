@@ -1,0 +1,20 @@
+- name: "Transfer files for {{ item.domain }} to {{ inventory_hostname }}"
+  when: inventory_hostname in item.hosts
+  block:
+    - name: "Copy certificate"
+      when: inventory_hostname in item.hosts
+      copy:
+        src: "/etc/letsencrypt/certs/fullchain_{{ item.domain }}.crt"
+        dest: "/etc/ssl/certs/{{ item.domain }}.crt"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: "Copy certificate key"
+      when: inventory_hostname in item.hosts
+      copy:
+        src: "/etc/letsencrypt/keys/{{ item.domain }}.key"
+        dest: "/etc/ssl/private/{{ item.domain }}.key"
+        owner: root
+        group: root
+        mode: "0644"

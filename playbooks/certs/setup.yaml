@@ -1,0 +1,28 @@
+- name: "Create Let's Encrypt directory"
+  file:
+    path: "{{ letsencrypt.base_directory }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0711
+
+- name: "Create required directories in {{ letsencrypt.base_directory }}"
+  file:
+    path: "{{ letsencrypt.base_directory }}/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0711
+  with_items:
+    - account
+    - certs
+    - csrs
+    - keys
+
+- name: "Generate Let's Encrypt account key"
+  openssl_privatekey:
+    path: "{{ letsencrypt.base_directory }}/{{ letsencrypt.account_key }}"
+    size: 4096
+    owner: root
+    group: root
+    mode: 0700

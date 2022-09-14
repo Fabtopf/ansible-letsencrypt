@@ -1,0 +1,71 @@
+- name: "Generate Let's Encrypt private key"
+  openssl_privatekey:
+    path: "{{ letsencrypt.base_directory }}/keys/{{ item.domain }}.key"
+    size: 4096
+    owner: root
+    group: root
+    mode: 0700
+
+- name: "Generate Let's Encrypt CSR"
+  openssl_csr:
+    path: "{{ letsencrypt.base_directory }}/csrs/{{ item.domain }}.csr"
+    privatekey_path: "{{ letsencrypt.base_directory }}/keys/{{ item.domain }}.key"
+    owner: root
+    group: root
+    mode: 0700
+    common_name: "{{ item.domain }}"
+    email_address: "{{ item.acme.email }}"
+    subject_alt_name: "DNS:*.{{ item.domain }}"
+
+- name: "Begin Let's Encrypt challenges"
+  register: acme_challenge
+  acme_certificate:
+    acme_directory: "{{ item.acme.directory }}"
+    acme_version: "{{ item.acme.version }}"
+    account_key_src: "{{ letsencrypt.base_directory }}/{{ letsencrypt.account_key }}"
+    account_email: "{{ item.acme.email }}"
+    terms_agreed: 1
+    challenge: "dns-01"
+    csr: "{{ letsencrypt.base_directory }}/csrs/{{ item.domain }}.csr"
+    dest: "{{ letsencrypt.base_directory }}/certs/{{ item.domain }}.crt"
+    fullchain_dest: "{{ letsencrypt.base_directory }}/certs/fullchain_{{ item.domain }}.crt"
+    remaining_days: 30
+
+- name: "Register Let's Encrypt challenge on Cloudflare"
+  when: acme_challenge is changed and '_acme-challenge.' + item.domain in acme_challenge.challenge_data_dns
+  loop: "{{ acme_challenge.challenge_data_dns['_acme-challenge.' + item.domain] | list }}"
+  loop_control:
+    loop_var: challenge
+  cloudflare_dns:
+    zone: "{{ item.domain }}"
+    type: TXT
+    record: "_acme-challenge.{{ item.domain }}"
+    value: "{{ challenge }}"
+    api_token: "{{ lookup('ansible.builtin.file', letsencrypt.base_directory + '/' + item.cloudflare_token) }}"
+    state: present
+
+- name: "Complete Let's Encrypt challenges"
+  ignore_errors: yes
+  acme_certificate:
+    acme_directory: "{{ item.acme.directory }}"
+    acme_version: "{{ item.acme.version }}"
+    account_key_src: "{{ letsencrypt.base_directory }}/{{ letsencrypt.account_key }}"
+    account_email: "{{ item.acme.email }}"
+    challenge: "dns-01"
+    csr: "{{ letsencrypt.base_directory }}/csrs/{{ item.domain }}.csr"
+    dest: "{{ letsencrypt.base_directory }}/certs/{{ item.domain }}.crt"
+    fullchain_dest: "{{ letsencrypt.base_directory }}/certs/fullchain_{{ item.domain }}.crt"
+    data: "{{ acme_challenge }}"
+
+- name: "Remove Let's Encrypt challenge on Cloudflare"
+  when: acme_challenge is changed and '_acme-challenge.' + item.domain in acme_challenge.challenge_data_dns
+  loop: "{{ acme_challenge.challenge_data_dns['_acme-challenge.' + item.domain] | list }}"
+  loop_control:
+    loop_var: challenge
+  cloudflare_dns:
+    zone: "{{ item.domain }}"
+    type: TXT
+    record: "_acme-challenge.{{ item.domain }}"
+    value: "{{ challenge }}"
+    api_token: "{{ lookup('ansible.builtin.file', letsencrypt.base_directory + '/' + item.cloudflare_token) }}"
+    state: absent
