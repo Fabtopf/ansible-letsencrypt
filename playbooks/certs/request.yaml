@@ -31,16 +31,25 @@
     fullchain_dest: "{{ letsencrypt.base_directory }}/certs/fullchain_{{ item.domain }}.crt"
     remaining_days: 30
 
+- name: "Remove old certificate"
+  when: acme_challenge is changed
+  file:
+    path: "{{ letsencrypt.base_directory }}/certs/{{ item.domain }}.crt"
+    state: absent
+
+- name: "Remove old fullchain certificate"
+  when: acme_challenge is changed
+  file:
+    path: "{{ letsencrypt.base_directory }}/certy/fullchain_{{ item.domain }}.crt"
+    state: absent
+
 - name: "Register Let's Encrypt challenge on Cloudflare"
   when: acme_challenge is changed and '_acme-challenge.' + item.domain in acme_challenge.challenge_data_dns
-  loop: "{{ acme_challenge.challenge_data_dns['_acme-challenge.' + item.domain] | list }}"
-  loop_control:
-    loop_var: challenge
   cloudflare_dns:
     zone: "{{ item.domain }}"
     type: TXT
     record: "_acme-challenge.{{ item.domain }}"
-    value: "{{ challenge }}"
+    value: "{{ acme_challenge.challenge_data_dns['_acme-challenge.' + item.domain] | last }}"
     api_token: "{{ lookup('ansible.builtin.file', letsencrypt.base_directory + '/' + item.cloudflare_token) }}"
     state: present
 
@@ -59,13 +68,10 @@
 
 - name: "Remove Let's Encrypt challenge on Cloudflare"
   when: acme_challenge is changed and '_acme-challenge.' + item.domain in acme_challenge.challenge_data_dns
-  loop: "{{ acme_challenge.challenge_data_dns['_acme-challenge.' + item.domain] | list }}"
-  loop_control:
-    loop_var: challenge
   cloudflare_dns:
     zone: "{{ item.domain }}"
     type: TXT
     record: "_acme-challenge.{{ item.domain }}"
-    value: "{{ challenge }}"
+    value: "{{ acme_challenge.challenge_data_dns['_acme-challenge.' + item.domain] | last }}"
     api_token: "{{ lookup('ansible.builtin.file', letsencrypt.base_directory + '/' + item.cloudflare_token) }}"
     state: absent
