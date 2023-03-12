@@ -1,6 +1,6 @@
 - hosts: "localhost"
   become: true
-  become_user: root
+  gather_facts: no
   vars_files:
     - ../vars/certs.json
   tasks:
@@ -9,13 +9,17 @@
     - name: "Gather Let's Encrypt certificates"
       include_tasks: certs/request.yaml
       loop: "{{ requests }}"
+      loop_control:
+        label: "{{ item.domain }}"
 
-- hosts: ssl
+- hosts: all
   become: true
-  become_user: root
+  ignore_unreachable: true
   vars_files:
     - ../vars/certs.json
   tasks:
     - name: "Deploy ssl certificate files"
       include_tasks: certs/deploy.yaml
       loop: "{{ requests }}"
+      loop_control:
+        label: "{{ item.domain }}"
