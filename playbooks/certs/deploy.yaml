@@ -1,6 +1,12 @@
 - name: "Transfer files for {{ item.domain }} to {{ inventory_hostname }}"
   when: inventory_hostname in item.hosts
+  ignore_errors: true
   block:
+    - name: "Check if group ssl exists"
+      shell: /usr/bin/getent group | awk -F":" '{print $1}'
+      register: etc_groups
+      changed_when: false
+
     - name: "Copy certificate"
       when: inventory_hostname in item.hosts
       copy:
@@ -8,13 +14,22 @@
         dest: "/etc/ssl/certs/{{ item.domain }}.crt"
         owner: root
         group: root
-        mode: "0644"
+        mode: '0644'
 
-    - name: "Copy certificate key"
-      when: inventory_hostname in item.hosts
+    - name: "Copy certificate key with group ssl"
+      when: inventory_hostname in item.hosts and 'ssl' in etc_groups.stdout_lines
+      copy:
+        src: "/etc/letsencrypt/keys/{{ item.domain }}.key"
+        dest: "/etc/ssl/private/{{ item.domain }}.key"
+        owner: root
+        group: ssl
+        mode: '0640'
+
+    - name: "Copy certificate key with group root"
+      when: inventory_hostname in item.hosts and 'ssl' not in etc_groups.stdout_lines
       copy:
         src: "/etc/letsencrypt/keys/{{ item.domain }}.key"
         dest: "/etc/ssl/private/{{ item.domain }}.key"
         owner: root
         group: root
-        mode: "0644"
+        mode: '0640'

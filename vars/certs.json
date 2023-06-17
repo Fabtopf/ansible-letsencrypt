@@ -6,6 +6,24 @@
     "requests": [
         {
             "domain": "example.com",
+            "subject_alt": [
+                "*.example.com",
+                "*.static.example.com",
+                "example.net",
+                "*.example.net"
+            ],
+            "cloudflare_token": "account/cloudflare.key",
+            "acme": {
+                "directory": "https://acme-v02.api.letsencrypt.org/directory",
+                "version": 2,
+                "email": "domain@example.de"
+            },
+            "hosts": [
+                "localhost"
+            ]
+        },
+        {
+            "domain": "example.net",
             "cloudflare_token": "account/cloudflare.key",
             "acme": {
                 "directory": "https://acme-v02.api.letsencrypt.org/directory",

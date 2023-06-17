@@ -15,7 +15,7 @@
     mode: 0700
     common_name: "{{ item.domain }}"
     email_address: "{{ item.acme.email }}"
-    subject_alt_name: "DNS:*.{{ item.domain }}"
+    subject_alt_name: "{{ item.subject_alt | default(['*.' + item.domain]) | map('regex_replace', '^', 'DNS:') | list }}"
 
 - name: "Begin Let's Encrypt challenges"
   register: acme_challenge
