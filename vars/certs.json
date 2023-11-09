@@ -7,10 +7,9 @@
         {
             "domain": "example.com",
             "subject_alt": [
+                "example.com",
                 "*.example.com",
-                "*.static.example.com",
-                "example.net",
-                "*.example.net"
+                "*.static.example.com"
             ],
             "cloudflare_token": "account/cloudflare.key",
             "acme": {
