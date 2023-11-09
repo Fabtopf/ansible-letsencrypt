@@ -1,0 +1,11 @@
+- name: "Remove DNS challeges for {{ challenge.key }}"
+  loop: "{{ challenge.value | list }}"
+  loop_control:
+    loop_var: challenge_data
+  cloudflare_dns:
+    zone: "{{ domain }}"
+    type: TXT
+    record: "{{ challenge.key }}"
+    value: "{{ challenge_data }}"
+    api_token: "{{ lookup('ansible.builtin.file', token_path) }}"
+    state: absent
