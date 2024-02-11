@@ -4,7 +4,7 @@
     state: directory
     owner: root
     group: root
-    mode: 0711
+    mode: 0700
 
 - name: "Create required directories in {{ letsencrypt.base_directory }}"
   file:
@@ -12,7 +12,7 @@
     state: directory
     owner: root
     group: root
-    mode: 0711
+    mode: 0700
   with_items:
     - account
     - certs
