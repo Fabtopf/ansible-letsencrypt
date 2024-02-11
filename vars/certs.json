@@ -3,32 +3,38 @@
         "base_directory": "/etc/letsencrypt",
         "account_key": "account/account.key"
     },
+    "request_defaults": {
+        "acme": {
+            "directory": "https://acme-v02.api.letsencrypt.org/directory",
+            "version": 2,
+            "email": "domain@cybine.de"
+        },
+        "zone": {
+            "cloudflare_token": "account/cloudflare.key"
+        }
+    },
+    "zones": [
+        { "name": "example.com" },
+        { "name": "example.net", "cloudflare_token": "account/another.key" }
+    ],
     "requests": [
         {
-            "domain": "example.com",
-            "subject_alt": [
-                "example.com",
+            "name": "example.com"
+            "subject": "example.com",
+            "alternatives": [
                 "*.example.com",
-                "*.static.example.com"
+                "*.static.example.com",
+
+                "example.org",
+                "*.example.org"
             ],
-            "cloudflare_token": "account/cloudflare.key",
-            "acme": {
-                "directory": "https://acme-v02.api.letsencrypt.org/directory",
-                "version": 2,
-                "email": "domain@example.de"
-            },
             "hosts": [
                 "localhost"
             ]
         },
         {
-            "domain": "example.net",
-            "cloudflare_token": "account/cloudflare.key",
-            "acme": {
-                "directory": "https://acme-v02.api.letsencrypt.org/directory",
-                "version": 2,
-                "email": "domain@example.de"
-            },
+            "name": "example.net",
+            "subject": "example.net",
             "hosts": [
                 "localhost"
             ]
