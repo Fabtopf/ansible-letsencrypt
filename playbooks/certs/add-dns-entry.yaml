@@ -2,10 +2,13 @@
   loop: "{{ challenge.value | list }}"
   loop_control:
     loop_var: challenge_data
+  vars:
+    query: "[?ends_with('{{ challenge.key }}', name)]"
+    zone: "{{ zones | json_query(query) | combine(request_defaults.zone, list_merge='keep', recursive=True) }}"
   cloudflare_dns:
-    zone: "{{ domain }}"
+    zone: "{{ zone.name }}"
     type: TXT
     record: "{{ challenge.key }}"
     value: "{{ challenge_data }}"
-    api_token: "{{ lookup('ansible.builtin.file', token_path) }}"
+    api_token: "{{ lookup('ansible.builtin.file', letsencrypt.base_directory + '/' + zone.cloudflare_token) }}"
     state: present
