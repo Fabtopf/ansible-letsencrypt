@@ -10,7 +10,7 @@
       include_tasks: certs/request.yaml
       loop: "{{ requests }}"
       loop_control:
-        label: "{{ item.domain }}"
+        label: "{{ item.name }}"
 
 - hosts: all
   become: true
@@ -22,4 +22,4 @@
       include_tasks: certs/deploy.yaml
       loop: "{{ requests }}"
       loop_control:
-        label: "{{ item.domain }}"
+        label: "{{ item.name }}"
