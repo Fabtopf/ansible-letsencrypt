@@ -1,4 +1,4 @@
-- name: "Transfer files for {{ item.domain }} to {{ inventory_hostname }}"
+- name: "Transfer files for {{ item.name }} to {{ inventory_hostname }}"
   when: inventory_hostname in item.hosts
   ignore_errors: true
   block:
@@ -7,29 +7,29 @@
       register: etc_groups
       changed_when: false
 
-    - name: "Copy certificate"
+    - name: "Copy certificate for {{ item.name }}"
       when: inventory_hostname in item.hosts
       copy:
-        src: "/etc/letsencrypt/certs/fullchain_{{ item.domain }}.crt"
-        dest: "/etc/ssl/certs/{{ item.domain }}.crt"
+        src: "/etc/letsencrypt/certs/{{ item.name }}.full.crt"
+        dest: "/etc/ssl/certs/{{ item.name }}.crt"
         owner: root
         group: root
         mode: '0644'
 
-    - name: "Copy certificate key with group ssl"
+    - name: "Copy certificate key with group ssl for {{ item.name }}"
       when: inventory_hostname in item.hosts and 'ssl' in etc_groups.stdout_lines
       copy:
-        src: "/etc/letsencrypt/keys/{{ item.domain }}.key"
-        dest: "/etc/ssl/private/{{ item.domain }}.key"
+        src: "/etc/letsencrypt/keys/{{ item.name }}.key"
+        dest: "/etc/ssl/private/{{ item.name }}.key"
         owner: root
         group: ssl
         mode: '0640'
 
-    - name: "Copy certificate key with group root"
+    - name: "Copy certificate key with group root for {{ item.name }}"
       when: inventory_hostname in item.hosts and 'ssl' not in etc_groups.stdout_lines
       copy:
-        src: "/etc/letsencrypt/keys/{{ item.domain }}.key"
-        dest: "/etc/ssl/private/{{ item.domain }}.key"
+        src: "/etc/letsencrypt/keys/{{ item.name }}.key"
+        dest: "/etc/ssl/private/{{ item.name }}.key"
         owner: root
         group: root
         mode: '0640'
